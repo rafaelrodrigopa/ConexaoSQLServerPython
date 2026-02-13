@@ -1,10 +1,12 @@
 from pathlib import Path
 import os
 import logging
-from ftplib import FTP
+from ftplib import FTP, error_perm
 from fnmatch import fnmatch
 from io import BytesIO
 import pandas as pd
+import openpyxl
+
 
 logger = logging.getLogger(__name__)
 
@@ -79,30 +81,51 @@ def fechar_ftp(ftp: FTP) -> None:
 
 
 def listar_arquivos_ftp(ftp: FTP, padrao: str = "*") -> list[str]:
-    """Lista arquivos no diretório atual do FTP filtrando por padrão (ex: *.csv)."""
-    nomes = ftp.nlst()
-    arquivos = []
+    """
+    Lista arquivos no diretório atual do FTP filtrando por padrão.
+    Tenta MLSD (mais confiável). Se não suportar, usa NLST com fallback.
+    """
+    arquivos: list[str] = []
 
+    # 1) Tenta MLSD (servidores modernos)
+    try:
+        for nome, facts in ftp.mlsd():
+            tipo = (facts.get("type") or "").lower()
+            if tipo == "file" and fnmatch(nome, padrao):
+                arquivos.append(nome)
+        return arquivos
+    except Exception:
+        pass
+
+    # 2) Fallback NLST (mais “cru”)
+    nomes = ftp.nlst()
     for nome in nomes:
         if not fnmatch(nome, padrao):
             continue
-        # Ignorar diretórios (ftp.size geralmente falha para diretórios)
+
+        # Tenta validar se é arquivo sem depender de SIZE (alguns FTP bloqueiam)
+        # - se conseguir CWD, é diretório => ignora
+        # - se não conseguir CWD, assumimos arquivo
+        pwd = ftp.pwd()
         try:
-            ftp.size(nome)
-            arquivos.append(nome)
-        except Exception:
+            ftp.cwd(nome)          # se entrar, é diretório
+            ftp.cwd(pwd)           # volta
             continue
+        except Exception:
+            arquivos.append(nome)
 
     return arquivos
 
 
-def ler_csvs_da_pasta_ftp(
+
+def ler_xlsx_da_pasta_ftp(
     ftp: FTP,
     padrao: str = "*.xlsx",
-    **read_csv_kwargs
+    sheet_name=0,
+    **read_excel_kwargs
 ) -> dict[str, pd.DataFrame]:
     """
-    Lê todos os xlsx do diretório atual do FTP.
+    Lê todos os XLSX do diretório atual do FTP.
     Retorna dict: {nome_arquivo: DataFrame}
     """
     bases: dict[str, pd.DataFrame] = {}
@@ -116,7 +139,7 @@ def ler_csvs_da_pasta_ftp(
             ftp.retrbinary(f"RETR {nome}", buffer.write)
             buffer.seek(0)
 
-            df = pd.read_csv(buffer, **read_csv_kwargs)
+            df = pd.read_excel(buffer, sheet_name=sheet_name, **read_excel_kwargs)
             bases[nome] = df
 
             print(f"Lido: {nome} -> {df.shape[0]} linhas, {df.shape[1]} colunas")
