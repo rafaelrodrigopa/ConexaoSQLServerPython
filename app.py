@@ -10,4 +10,4 @@ from datetime import datetime
 
 #print(resultado)
 df = comparativo_faturamento()
-print(df.head())
+print(df['doc_fat'].head())
