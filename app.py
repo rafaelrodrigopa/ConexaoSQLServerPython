@@ -1,4 +1,4 @@
-from comparativos import comparativo_captacao, comparativo_open
+from comparativos import comparativo_captacao, comparativo_open, comparativo_faturamento
 import numpy as np
 from datetime import datetime
 
@@ -9,4 +9,4 @@ from datetime import datetime
 #resultado = merge[merge['data_doc']=='2026-02-01']
 
 #print(resultado)
-comparativo_open()
+comparativo_faturamento()

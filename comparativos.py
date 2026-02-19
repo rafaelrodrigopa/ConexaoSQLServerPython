@@ -133,5 +133,31 @@ def comparativo_open():
         suffixes=("", "_ftp")
     )
     """
-
+    
     print(df_sem_duplicatas.head())
+
+
+def comparativo_faturamento():
+    query_faturamento = """
+        SELECT 
+            *
+        FROM [ComercialDB].[dbo].[TB_FATURAMENTO]
+        WHERE [data_faturamento] >= '2026-02-01' AND [data_faturamento] <= GETDATE()-1 AND [tipo_doc_vendas] NOT IN ('ZIV')
+    """
+
+    # Leitura na tabela
+    df_fat = pd.read_sql(query_faturamento,engine)
+
+    # Preenche NaN com 0
+    df_fat['valor_fat_liquido'] = df_fat['valor_fat_liquido'].fillna(0)
+
+    # Agrupamento pelo doc_fat com soma do valor_fat_liquido
+    df_agrupado_por_doc = df_fat.groupby('doc_fat')['valor_fat_liquido'].sum().reset_index()
+
+    #Leitura do arquivo de faturamento
+    bases = conect_ftp_e_leitura()
+    df = bases['faturamento_202602.xlsx']
+    print(df)
+
+
+    
