@@ -9,4 +9,5 @@ from datetime import datetime
 #resultado = merge[merge['data_doc']=='2026-02-01']
 
 #print(resultado)
-comparativo_faturamento()
+df = comparativo_faturamento()
+print(df.head())

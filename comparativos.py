@@ -145,6 +145,7 @@ def comparativo_faturamento():
         WHERE [data_faturamento] >= '2026-02-01' AND [data_faturamento] <= GETDATE()-1 AND [tipo_doc_vendas] NOT IN ('ZIV')
     """
 
+    """
     # Leitura na tabela
     df_fat = pd.read_sql(query_faturamento,engine)
 
@@ -153,11 +154,15 @@ def comparativo_faturamento():
 
     # Agrupamento pelo doc_fat com soma do valor_fat_liquido
     df_agrupado_por_doc = df_fat.groupby('doc_fat')['valor_fat_liquido'].sum().reset_index()
+    """
 
     #Leitura do arquivo de faturamento
     bases = conect_ftp_e_leitura()
     df = bases['faturamento_202602.xlsx']
-    print(df)
+    #df_agrupado_por_data = df.groupby('doc_fat')['valor_fat_liquido'].sum()
+
+
+    return bases['faturamento_202602.xlsx']
 
 
     
