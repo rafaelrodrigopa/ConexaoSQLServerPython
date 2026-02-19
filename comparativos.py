@@ -10,7 +10,6 @@ def comparativo_captacao(coluna_comparativa="doc_vendas"):
         where [data_doc] >= '2026-02-01' and [data_doc] <= '2026-02-13'
     """
 
-    #df_faturamento = pd.read_sql(query_faturamento,engine)
     df_captacao = pd.read_sql(query_captacao,engine)
 
     # Agrupado por doc_vendas -> Valor liquido
@@ -80,7 +79,59 @@ def comparativo_captacao(coluna_comparativa="doc_vendas"):
 
     filtro_docs_divergentes = df_merge[df_merge['status']=='DIVERGENTE']
 
-    return filtro_docs_divergentes[filtro_docs_divergentes['data_doc']=='2026-02-01']
+    return filtro_docs_divergentes, df_merge
     #print(filtro_docs_divergentes)
 
 
+def comparativo_open():
+    query_open = """ 
+        SELECT 
+            *
+        FROM [ComercialDB].[dbo].[TB_OPEN_ORDENS]
+        WHERE [calendar_day] >= '2026-02-01' AND [calendar_day] <= '2026-02-13'
+    """
+
+    df_open = pd.read_sql(query_open,engine)
+    df_agrupado_por_data_sql = df_open.groupby('calendar_day')['open_order_net'].sum().reset_index()
+    df_agrupado_por_data_sql = df_agrupado_por_data_sql#.to_frame()
+    #df_agrupado_por_data_sql = df_agrupado_por_data_sql.reset_index()
+    print(df_agrupado_por_data_sql.head())
+
+    bases = conect_ftp_e_leitura()
+
+    df = bases['open_ordens_202602.xlsx']
+    df_agrupado_por_data_ftp = df.groupby('created_on')['open_order_net'].sum().reset_index()
+    df_agrupado_por_data_ftp = df_agrupado_por_data_ftp#.to_frame()
+    #df_agrupado_por_data_ftp = df_agrupado_por_data_ftp.reset_index()
+    print(df_agrupado_por_data_ftp.head())
+
+    # Juntar colunas e remover duplicatas
+    df_sem_duplicatas = (
+        pd.concat([
+            # transformando no tipo string
+            df_agrupado_por_data_sql['calendar_day'].astype(str),
+            df_agrupado_por_data_ftp['created_on'].astype(str)
+        ])
+        # Remove duplicatas
+        .drop_duplicates()
+        .sort_values()
+        # Reseta o index
+        .reset_index(drop=True)
+    ).to_frame()
+
+    # Realiza o merge do arquivo FTP com os dados da Tabela do SQL
+    """
+    df_merge = df_sem_duplicatas.merge(
+        df_agrupado_por_data_sql,
+        on='calendar_day',
+        how="left",
+        suffixes=("", "_sql")
+    ).merge(
+        df_agrupado_por_data_ftp,
+        on='created_on',
+        how="left",
+        suffixes=("", "_ftp")
+    )
+    """
+
+    print(df_sem_duplicatas.head())

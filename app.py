@@ -1,7 +1,12 @@
-from comparativos import comparativo_captacao
+from comparativos import comparativo_captacao, comparativo_open
 import numpy as np
+from datetime import datetime
 
-teste = comparativo_captacao("data_doc")['diferenca']
-teste_2 = np.where(teste > 0, 'Positivo', 'Negativo')
 
-print(teste_2)
+#filtrado = comparativo_captacao("data_doc")[0]
+#merge = comparativo_captacao("data_doc")[1]
+
+#resultado = merge[merge['data_doc']=='2026-02-01']
+
+#print(resultado)
+comparativo_open()
