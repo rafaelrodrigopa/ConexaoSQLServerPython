@@ -27,7 +27,7 @@ def conectar_e_entrar_no_diretorio(
     Retorna o objeto FTP pronto para uso (lembre de fechar com ftp.quit()).
     """
     #logger.info(f"Conectando ao FTP {host}:{port}...")
-    print(f"Conectando ao FTP {host}:{port}...")
+    #print(f"Conectando ao FTP {host}:{port}...")
 
     ftp = FTP()
     ftp.set_pasv(passive)

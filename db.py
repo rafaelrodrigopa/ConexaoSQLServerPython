@@ -21,7 +21,7 @@ odbc_str = (
     "TrustServerCertificate=yes;"
 )
 
-print("SERVER:", os.getenv("DB_SERVER"))
+#print("SERVER:", os.getenv("DB_SERVER"))
 
 engine = create_engine(
     f"mssql+pyodbc:///?odbc_connect={quote_plus(odbc_str)}"

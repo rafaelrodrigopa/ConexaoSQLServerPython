@@ -2,7 +2,7 @@ import os
 from funcoes import conectar_e_entrar_no_diretorio, fechar_ftp, ler_xlsx_da_pasta_ftp
 from dotenv import load_dotenv
 
-def conect_ftp_e_leitura() -> dict[str, pd.DataFrame]:
+def conect_ftp_e_leitura():
     load_dotenv()
 
     # Configurações FTP (podem ser sobrescritas por variáveis de ambiente)
@@ -13,7 +13,7 @@ def conect_ftp_e_leitura() -> dict[str, pd.DataFrame]:
     FTP_DIR = os.getenv("FTP_DIR")
 
     ftp = conectar_e_entrar_no_diretorio(FTP_HOST, FTP_PORT, FTP_USER, FTP_PASS, FTP_DIR)
-    bases = ler_xlsx_da_pasta_ftp(ftp, padrao="*.xlsx", sheet_name=0)
+    bases = ler_xlsx_da_pasta_ftp(ftp, padrao="*faturamento_202602.xlsx", sheet_name=0)
     return bases
 
 """
